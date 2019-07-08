@@ -7,22 +7,35 @@
 //串口实验   
 //技术支持：www.openedv.com
 //广州市星翼电子科技有限公司
- 
+# define DATA_LEN 13
+extern u8 USART2_RX_BUF[64]; //接收到的数据
+extern u8 USART3_RX_BUF[64]; //接收到的数据
+extern u8 UART5_RX_BUF[64]; //接收到的数据
 int main(void)
 {			
-
+	char strTemp[64];
+	char *p2 = strTemp;
+	char *p3 = strTemp +DATA_LEN;
+	char *p5 = strTemp +DATA_LEN*2;
 	Stm32_Clock_Init(9); //系统时钟设置
 	delay_init(72);	     //延时初始化 
-	uart_init(72,115200);	 //串口初始化为9600  改为115200试试
-	uart2_init(36,115200);
-	uart3_init(36,115200);
-	uart5_init(36,115200);
+	uart_init(72,38400);	 
+	uart2_init(36,38400);
+	uart3_init(36,38400);
+	uart5_init(36,38400);
+
 
 	while(1)
 	{
-//		usart1_sendString("hello",5);
-//		usart2_sendString("22222",5);
-//		delay_ms(500);
+
+		delay_ms(100);
+		strncpy(p2,(char *)USART2_RX_BUF,DATA_LEN);
+		strncpy(p3,(char *)USART3_RX_BUF,DATA_LEN);
+		strncpy(p5,(char *)UART5_RX_BUF,DATA_LEN);
+		strcpy(p5+DATA_LEN,"\r\n\r\n");
+
+		usart1_sendString(strTemp,DATA_LEN*3+4);
+		
 	}	 
 }
 

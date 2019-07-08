@@ -53,12 +53,12 @@ int fputc(int ch, FILE *f)
 #if EN_USART1_RX   //如果使能了接收
 //串口1中断服务程序
 //注意,读取USARTx->SR能避免莫名其妙的错误   	
-u8 USART_RX_BUF[USART_REC_LEN];     //接收缓冲,最大USART_REC_LEN个字节.
-//接收状态
-//bit15，	接收完成标志
-//bit14，	接收到0x0d
-//bit13~0，	接收到的有效字节数目
-u16 USART_RX_STA=0;       //接收状态标记	  
+//u8 USART_RX_BUF[USART_REC_LEN];     //接收缓冲,最大USART_REC_LEN个字节.
+////接收状态
+////bit15，	接收完成标志
+////bit14，	接收到0x0d
+////bit13~0，	接收到的有效字节数目
+//u16 USART_1_RX_STA=0;       //接收状态标记	  
   
 
 
@@ -99,8 +99,39 @@ void USART1_IRQHandler(void)
 	if(USART1->SR&(1<<5))	//接收到数据
 	{	 
 		res=USART1->DR; 
-		sprintf(strTemp,"1:\t%c\r\n",res);
-		usart1_sendString(strTemp,strlen(strTemp));	
+//		sprintf(strTemp,"1:\t%c\r\n",res);
+//		usart1_sendString(strTemp,strlen(strTemp));	
+		
+		USART1->CR1 &=~(1<<3);  //屏蔽发送
+		//--------------------------------------
+		//开始快速自动持续测量
+		if(res == '2')
+		{
+			usart2_sendString("iFACM:0",7);
+		}
+		else if(res == '3')  
+		{
+			usart3_sendString("iFACM:0",7);
+		}
+		else if(res == '5')
+		{
+			uart5_sendString("iFACM:0",7);
+		}
+		else if(res == 'a')
+		{
+			usart2_sendString("iFACM:0",7);
+			usart3_sendString("iFACM:0",7);
+			uart5_sendString("iFACM:0",7);
+		}
+		else if (res == 'z')
+		{
+			usart2_sendString("iHALT",5);
+			usart3_sendString("iHALT",5);
+			uart5_sendString("iHALT",5);
+			usart2_sendString("iHALT",5);
+		}
+		//--------------------------------------
+		USART1->CR1 |=1<<3;  //重新开启发送
 	}
 #if SYSTEM_SUPPORT_OS 	//如果SYSTEM_SUPPORT_OS为真，则需要支持OS.
 	OSIntExit();  											 

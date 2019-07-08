@@ -31,19 +31,58 @@ void uart2_init(u32 pclk2,u32 bound)
 入口参数：无
 返回  值：无
 **************************************************************************/
+u8 USART2_RX_BUF[64]; //接收到的数据
+u16 USART2_RX_STA=0; 
+u8 USART2_COUNT = 0;
+//接收状态
+//bit15，	接收完成标志
+//bit14，	接收到0x0d
+//bit13~0，	接收到的有效字节数目
+
 int USART2_IRQHandler(void)
 {	
+	u8 res;
 	if(USART2->SR&(1<<5))//接收到数据
 	{	      
-		u8 temp;
-		char strTemp[64];
-		temp =USART2->DR;
-		sprintf(strTemp,"2:\t%c\r\n",temp);
-		usart2_sendString(strTemp,strlen(strTemp));
-   }
+			res =USART2->DR;
+			if((USART2_RX_STA&0x8000)==0)//接收未完成
+			{
+				if(USART2_RX_STA&0x4000)//接收到了0x0d
+				{
+					if(res!=0x0a)USART2_RX_STA=0;//接收错误,重新开始
+					else 
+					{
+						USART2_RX_STA|=0x8000;	//接收完成了
+						USART2_RX_BUF[USART2_RX_STA&0X3FFF]=res;
+						//usart1_sendString((char *)USART2_RX_BUF,USART2_COUNT+1);
+						USART2_RX_BUF[0] = 'u';
+						USART2_RX_BUF[1] = '2';
+						USART2_RX_BUF[2] = '\t';
+						USART2_RX_STA = 3;
+						USART2_COUNT = 3;
+					}
+					
+				}else //还没收到0X0D
+				{	
+					if(res==0x0d)
+					{
+						USART2_RX_STA|=0x4000;
+						USART2_RX_BUF[USART2_RX_STA&0X3FFF]=res;
+						USART2_RX_STA++;
+						USART2_COUNT ++;
+					}
+					else
+					{
+						USART2_RX_BUF[USART2_RX_STA&0X3FFF]=res;
+						USART2_RX_STA++;
+						USART2_COUNT ++;
+						if(USART2_RX_STA>(USART_REC_LEN-1))USART2_RX_STA=0;//接收数据错误,重新开始接收	  
+					}		 
+				}
+			}
+	}
 return 0;	
 }
-
 
 /**************************实现函数**********************************************
 *功    能:		usart2发送一个字节
@@ -59,36 +98,21 @@ void usart2_send(u8 data)
 void usart2_sendString(char *data,u8 len)
 {
 	int i=0;
+	
+	USART2->CR1 &=~(1<<2);  //屏蔽接收
+	USART2_RX_STA =0;    //如果接收到一半就放弃这组数据
+	USART2_COUNT =0;
+	
 	for(i=0;i<len;i++)
 	{
 		USART2->DR = data[i];
 		while((USART2->SR&0x40)==0);	
 	}
-	
+	USART2->CR1 |=1<<2;   //重新开启接收
 }
 
 //----------------------------------------------------------串口3-------------------------------------------------------------//
-/**************************实现函数**********************************************
-*功    能:		usart3发送一个字节
-*********************************************************************************/
-void usart3_send(u8 data)
-{
-	USART3->DR = data;
-	while((USART3->SR&0x40)==0);	
-}
-/**************************实现函数**********************************************
-*功    能:		usart3发送一个字符串
-*********************************************************************************/
-void usart3_sendString(char *data,u8 len)
-{
-	int i=0;
-	for(i=0;i<len;i++)
-	{
-		USART3->DR = data[i];
-		while((USART3->SR&0x40)==0);	
-	}
-	
-}
+
 /**************************************************************************
 函数功能：串口3初始化
 入口参数：pclk2:PCLK2 时钟频率(Mhz)    bound:波特率
@@ -130,51 +154,87 @@ float temp;
 入口参数：无
 返回  值：无
 **************************************************************************/
-
-#define dD 1
-#define dColon 2
-#define dComma 3
-
-#define oO 1
-#define oEnd 2
+u8 USART3_RX_BUF[64]; //接收到的数据
+u16 USART3_RX_STA=0; 
+u8 USART3_COUNT = 0;
+//接收状态
+//bit15，	接收完成标志
+//bit14，	接收到0x0d
+//bit13~0，	接收到的有效字节数目
 
 int USART3_IRQHandler(void)
 {	
+	u8 res;
 	if(USART3->SR&(1<<5))//接收到数据
 	{	      
-			u8 temp;
-			char strTemp[64];
-			temp =USART3->DR;
-			sprintf(strTemp,"3:\t%c\r\n",temp);
-			usart3_sendString(strTemp,strlen(strTemp)); 	
+			res =USART3->DR;
+			if((USART3_RX_STA&0x8000)==0)//接收未完成
+			{
+				if(USART3_RX_STA&0x4000)//接收到了0x0d
+				{
+					if(res!=0x0a)USART3_RX_STA=0;//接收错误,重新开始
+					else 
+					{
+						USART3_RX_STA|=0x8000;	//接收完成了
+						USART3_RX_BUF[USART3_RX_STA&0X3FFF]=res;
+						//usart1_sendString((char *)USART3_RX_BUF,USART3_COUNT+1);
+						
+						USART3_RX_BUF[0] = 'u';
+						USART3_RX_BUF[1] = '3';
+						USART3_RX_BUF[2] = '\t';
+						USART3_RX_STA = 3;
+						USART3_COUNT = 3;
+						
+					}
+					
+				}else //还没收到0X0D
+				{	
+					if(res==0x0d)
+					{
+						USART3_RX_STA|=0x4000;
+						USART3_RX_BUF[USART3_RX_STA&0X3FFF]=res;
+						USART3_RX_STA++;
+						USART3_COUNT ++;
+					}
+					else
+					{
+						USART3_RX_BUF[USART3_RX_STA&0X3FFF]=res;
+						USART3_RX_STA++;
+						USART3_COUNT ++;
+						if(USART3_RX_STA>(USART_REC_LEN-1))USART3_RX_STA=0;//接收数据错误,重新开始接收	  
+					}		 
+				}
+			}
 	}
 return 0;	
 }
-
-
-//----------------------------------------------------------串口5-------------------------------------------------------------//
 /**************************实现函数**********************************************
-*功    能:		uart5发送一个字节
+*功    能:		usart3发送一个字节
 *********************************************************************************/
-void uart5_send(u8 data)
+void usart3_send(u8 data)
 {
-	UART5->DR = data;
-	while((UART5->SR&0x40)==0);	
+	USART3->DR = data;
+	while((USART3->SR&0x40)==0);	
 }
-
-
 /**************************实现函数**********************************************
-*功    能:		uart5发送一个字符串
+*功    能:		usart3发送一个字符串
 *********************************************************************************/
-void uart5_sendString(char * data ,u8 len)
+void usart3_sendString(char *data,u8 len)
 {
 	int i=0;
+	USART3->CR1 &=~(1<<2);  //屏蔽接收
+	USART3_RX_STA =0;    //如果接收到一半就放弃这组数据
+	USART3_COUNT =0;
 	for(i=0;i<len;i++)
 	{
-		UART5->DR = data[i];
-		while((UART5->SR&0x40)==0);
+		USART3->DR = data[i];
+		while((USART3->SR&0x40)==0);	
 	}
+	USART3->CR1 |=1<<2;   //重新开启接收
 }
+
+//----------------------------------------------------------串口5-------------------------------------------------------------//
+
 /**************************实现函数**********************************************
 *功    能:		uart5初始化
 *********************************************************************************/
@@ -223,19 +283,88 @@ void uart5_init(u32 pclk1,u32 bound)
 }
 
 
-void UART5_IRQHandler(void)    // 注意要用UART5 不是USART5
- //	 	 UART5_IRQHandler  注意函数名 不要写错
+/**************************************************************************
+函数功能：串口5接收中断
+入口参数：无
+返回  值：无
+**************************************************************************/
+u8 UART5_RX_BUF[64]; //接收到的数据
+u16 UART5_RX_STA=0; 
+u8 UART5_COUNT = 0;
+//接收状态
+//bit15，	接收完成标志
+//bit14，	接收到0x0d
+//bit13~0，	接收到的有效字节数目
+
+int UART5_IRQHandler(void)
 {	
+	u8 res;
 	if(UART5->SR&(1<<5))//接收到数据
-	{
-			u8 temp;
-			char strTemp[64];
-			temp =UART5->DR;
-			sprintf(strTemp,"5:%c\r\n",temp);	
-			uart5_sendString(strTemp,strlen(strTemp)); 
-		  
-	}						
+	{	      
+			res =UART5->DR;
+			if((UART5_RX_STA&0x8000)==0)//接收未完成
+			{
+				if(UART5_RX_STA&0x4000)//接收到了0x0d
+				{
+					if(res!=0x0a)UART5_RX_STA=0;//接收错误,重新开始
+					else 
+					{
+						UART5_RX_STA|=0x8000;	//接收完成了
+						UART5_RX_BUF[UART5_RX_STA&0X3FFF]=res;
+						//usart1_sendString((char *)UART5_RX_BUF,UART5_COUNT+1);
+						UART5_RX_BUF[0] = 'u';
+						UART5_RX_BUF[1] = '5';
+						UART5_RX_BUF[2] = '\t';
+						UART5_RX_STA = 3;
+						UART5_COUNT = 3;
+					}
+					
+				}else //还没收到0X0D
+				{	
+					if(res==0x0d)
+					{
+						UART5_RX_STA|=0x4000;
+						UART5_RX_BUF[UART5_RX_STA&0X3FFF]=res;
+						UART5_RX_STA++;
+						UART5_COUNT ++;
+					}
+					else
+					{
+						UART5_RX_BUF[UART5_RX_STA&0X3FFF]=res;
+						UART5_RX_STA++;
+						UART5_COUNT ++;
+						if(UART5_RX_STA>(USART_REC_LEN-1))UART5_RX_STA=0;//接收数据错误,重新开始接收	  
+					}		 
+				}
+			}
+	}
+return 0;	
+}
+
+/**************************实现函数**********************************************
+*功    能:		uart5发送一个字节
+*********************************************************************************/
+void uart5_send(u8 data)
+{
+	UART5->DR = data;
+	while((UART5->SR&0x40)==0);	
 }
 
 
+/**************************实现函数**********************************************
+*功    能:		uart5发送一个字符串
+*********************************************************************************/
+void uart5_sendString(char * data ,u8 len)
+{
+	int i=0;
+	UART5->CR1 &=~(1<<2);  //屏蔽接收
+	UART5_RX_STA =0;    //如果接收到一半就放弃这组数据
+	UART5_COUNT =0;
+	for(i=0;i<len;i++)
+	{
+		UART5->DR = data[i];
+		while((UART5->SR&0x40)==0);
+	}
+	UART5->CR1 |=1<<2;   //重新开启接收
+}
 
