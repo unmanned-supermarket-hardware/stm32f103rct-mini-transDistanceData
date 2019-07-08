@@ -38,11 +38,8 @@ int USART2_IRQHandler(void)
 		u8 temp;
 		char strTemp[64];
 		temp =USART2->DR;
-		sprintf(strTemp,"串口2收到数据:\t%c\r\n",temp);
-		usart1_sendString(strTemp,strlen(strTemp));
+		sprintf(strTemp,"2:\t%c\r\n",temp);
 		usart2_sendString(strTemp,strlen(strTemp));
-		usart3_sendString(strTemp,strlen(strTemp)); 	
-		uart5_sendString(strTemp,strlen(strTemp)); 
    }
 return 0;	
 }
@@ -115,7 +112,7 @@ float temp;
 	GPIOC->CRH&=0XFFFF00FF; 
 	GPIOC->CRH|=0X00008B00;//IO状态设置
 	GPIOC->ODR|=1<<10;	 
-  AFIO->MAPR|=1<<4;      //部分重映射
+	AFIO->MAPR|=1<<4;      //部分重映射
 
 	RCC->APB1RSTR|=1<<18;   //复位串口1
 	RCC->APB1RSTR&=~(1<<18);//停止复位	   	   
@@ -147,17 +144,13 @@ int USART3_IRQHandler(void)
 	{	      
 			u8 temp;
 			char strTemp[64];
-			temp =USART2->DR;
-			sprintf(strTemp,"串口3收到数据:\t%c\r\n",temp);
-			usart1_sendString(strTemp,strlen(strTemp));
-			usart2_sendString(strTemp,strlen(strTemp));
+			temp =USART3->DR;
+			sprintf(strTemp,"3:\t%c\r\n",temp);
 			usart3_sendString(strTemp,strlen(strTemp)); 	
-			uart5_sendString(strTemp,strlen(strTemp)); 
-		}
-			
-   
+	}
 return 0;	
 }
+
 
 //----------------------------------------------------------串口5-------------------------------------------------------------//
 /**************************实现函数**********************************************
@@ -237,12 +230,10 @@ void UART5_IRQHandler(void)    // 注意要用UART5 不是USART5
 	{
 			u8 temp;
 			char strTemp[64];
-			temp =USART2->DR;
-			sprintf(strTemp,"串口5收到数据:\t%c\r\n",temp);
-			usart1_sendString(strTemp,strlen(strTemp));
-			usart2_sendString(strTemp,strlen(strTemp));
-			usart3_sendString(strTemp,strlen(strTemp)); 	
+			temp =UART5->DR;
+			sprintf(strTemp,"5:%c\r\n",temp);	
 			uart5_sendString(strTemp,strlen(strTemp)); 
+		  
 	}						
 }
 

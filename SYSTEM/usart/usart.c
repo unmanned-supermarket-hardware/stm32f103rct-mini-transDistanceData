@@ -99,11 +99,8 @@ void USART1_IRQHandler(void)
 	if(USART1->SR&(1<<5))	//接收到数据
 	{	 
 		res=USART1->DR; 
-		sprintf(strTemp,"串口1收到数据:\t%c\r\n",res);
-		usart1_sendString(strTemp,strlen(strTemp));
-		usart2_sendString(strTemp,strlen(strTemp));
-		usart3_sendString(strTemp,strlen(strTemp)); 	
-		uart5_sendString(strTemp,strlen(strTemp)); 		
+		sprintf(strTemp,"1:\t%c\r\n",res);
+		usart1_sendString(strTemp,strlen(strTemp));	
 	}
 #if SYSTEM_SUPPORT_OS 	//如果SYSTEM_SUPPORT_OS为真，则需要支持OS.
 	OSIntExit();  											 
