@@ -98,10 +98,12 @@
 								   
 									 
 #include <string.h> 		 //strlen						 
-#include <stdlib.h>	        //atof()
+#include <stdlib.h>	        //atof()  malloc()
 #include <stdio.h>
 #include "usartx.h"
 #include "usart.h"
+#include "cJSON.h"
+#include "malloc.h"
 //JTAG模式设置定义
 #define JTAG_SWD_DISABLE   0X02
 #define SWD_ENABLE         0X01

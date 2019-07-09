@@ -107,15 +107,18 @@ void USART1_IRQHandler(void)
 		//开始快速自动持续测量
 		if(res == '2')
 		{
-			usart2_sendString("iFACM:0",7);
+//			usart2_sendString("iFACM:0",7);
+			usart2_sendString("iSET:6,1",8);
 		}
 		else if(res == '3')  
 		{
-			usart3_sendString("iFACM:0",7);
+			//usart3_sendString("iFACM:0",7);
+			usart2_sendString("iSET:6,1",8);
 		}
 		else if(res == '5')
 		{
-			uart5_sendString("iFACM:0",7);
+			//uart5_sendString("iFACM:0",7);
+			usart2_sendString("iSET:6,1",8);
 		}
 		else if(res == 'a')
 		{

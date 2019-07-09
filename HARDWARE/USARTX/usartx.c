@@ -34,6 +34,8 @@ void uart2_init(u32 pclk2,u32 bound)
 u8 USART2_RX_BUF[64]; //接收到的数据
 u16 USART2_RX_STA=0; 
 u8 USART2_COUNT = 0;
+double d2 =0;
+char d2Str[5];
 //接收状态
 //bit15，	接收完成标志
 //bit14，	接收到0x0d
@@ -42,9 +44,11 @@ u8 USART2_COUNT = 0;
 int USART2_IRQHandler(void)
 {	
 	u8 res;
+	char strTemp[64];
 	if(USART2->SR&(1<<5))//接收到数据
 	{	      
 			res =USART2->DR;
+		//usart2_send(res);
 			if((USART2_RX_STA&0x8000)==0)//接收未完成
 			{
 				if(USART2_RX_STA&0x4000)//接收到了0x0d
@@ -55,11 +59,20 @@ int USART2_IRQHandler(void)
 						USART2_RX_STA|=0x8000;	//接收完成了
 						USART2_RX_BUF[USART2_RX_STA&0X3FFF]=res;
 						//usart1_sendString((char *)USART2_RX_BUF,USART2_COUNT+1);
-						USART2_RX_BUF[0] = 'u';
-						USART2_RX_BUF[1] = '2';
-						USART2_RX_BUF[2] = '\t';
-						USART2_RX_STA = 3;
-						USART2_COUNT = 3;
+						//-------------------
+						USART2_RX_BUF[(USART2_RX_STA&0X3FFF)-2] = '\0';
+						strncpy(d2Str,(char *)(USART2_RX_BUF+2),6);
+						sprintf(strTemp,"%s\r\n",d2Str);
+						
+						usart1_sendString(strTemp,strlen(strTemp));
+						if(USART2_RX_BUF[0] =='D')
+							d2 = atof(d2Str);
+						else
+							d2 =-1;
+						//-------------------
+
+						USART2_RX_STA = 0;
+						USART2_COUNT = 0;
 					}
 					
 				}else //还没收到0X0D
@@ -157,6 +170,8 @@ float temp;
 u8 USART3_RX_BUF[64]; //接收到的数据
 u16 USART3_RX_STA=0; 
 u8 USART3_COUNT = 0;
+char d3Str[5];
+double d3=0;
 //接收状态
 //bit15，	接收完成标志
 //bit14，	接收到0x0d
@@ -165,6 +180,7 @@ u8 USART3_COUNT = 0;
 int USART3_IRQHandler(void)
 {	
 	u8 res;
+	char strTemp[64];
 	if(USART3->SR&(1<<5))//接收到数据
 	{	      
 			res =USART3->DR;
@@ -177,13 +193,21 @@ int USART3_IRQHandler(void)
 					{
 						USART3_RX_STA|=0x8000;	//接收完成了
 						USART3_RX_BUF[USART3_RX_STA&0X3FFF]=res;
-						//usart1_sendString((char *)USART3_RX_BUF,USART3_COUNT+1);
+						//usart1_sendString((char *)USART2_RX_BUF,USART2_COUNT+1);
+						//-------------------
+						USART3_RX_BUF[(USART3_RX_STA&0X3FFF)-2] = '\0';
+						strncpy(d3Str,(char *)(USART3_RX_BUF+2),6);
+						sprintf(strTemp,"%s",d3Str);
 						
-						USART3_RX_BUF[0] = 'u';
-						USART3_RX_BUF[1] = '3';
-						USART3_RX_BUF[2] = '\t';
-						USART3_RX_STA = 3;
-						USART3_COUNT = 3;
+						//usart1_sendString(strTemp,strlen(strTemp));
+						if(USART3_RX_BUF[0] =='D')
+							d3 = atof(d3Str);
+						else 
+							d3 = -1;
+						//-------------------
+
+						USART3_RX_STA = 0;
+						USART3_COUNT = 0;
 						
 					}
 					
@@ -291,6 +315,8 @@ void uart5_init(u32 pclk1,u32 bound)
 u8 UART5_RX_BUF[64]; //接收到的数据
 u16 UART5_RX_STA=0; 
 u8 UART5_COUNT = 0;
+char d5Str[5];
+double d5 = 0;
 //接收状态
 //bit15，	接收完成标志
 //bit14，	接收到0x0d
@@ -299,6 +325,7 @@ u8 UART5_COUNT = 0;
 int UART5_IRQHandler(void)
 {	
 	u8 res;
+	char strTemp[64];
 	if(UART5->SR&(1<<5))//接收到数据
 	{	      
 			res =UART5->DR;
@@ -311,12 +338,21 @@ int UART5_IRQHandler(void)
 					{
 						UART5_RX_STA|=0x8000;	//接收完成了
 						UART5_RX_BUF[UART5_RX_STA&0X3FFF]=res;
-						//usart1_sendString((char *)UART5_RX_BUF,UART5_COUNT+1);
-						UART5_RX_BUF[0] = 'u';
-						UART5_RX_BUF[1] = '5';
-						UART5_RX_BUF[2] = '\t';
-						UART5_RX_STA = 3;
-						UART5_COUNT = 3;
+						//usart1_sendString((char *)USART2_RX_BUF,USART2_COUNT+1);
+						//-------------------
+						UART5_RX_BUF[(UART5_RX_STA&0X3FFF)-2] = '\0';
+						strncpy(d5Str,(char *)(UART5_RX_BUF+2),6);
+						sprintf(strTemp,"%s",d5Str);
+						
+						//usart1_sendString(strTemp,strlen(strTemp));
+						if(UART5_RX_BUF[0] =='D')
+							d5 = atof(d5Str);
+						else
+							d5 = -1;
+						//-------------------
+
+						UART5_RX_STA = 0;
+						UART5_COUNT = 0;
 					}
 					
 				}else //还没收到0X0D
@@ -333,7 +369,7 @@ int UART5_IRQHandler(void)
 						UART5_RX_BUF[UART5_RX_STA&0X3FFF]=res;
 						UART5_RX_STA++;
 						UART5_COUNT ++;
-						if(UART5_RX_STA>(USART_REC_LEN-1))UART5_RX_STA=0;//接收数据错误,重新开始接收	  
+						if(UART5_RX_STA>(USART_REC_LEN-1))UART5_RX_STA=0;//接收数据错误,重新开始接收	 
 					}		 
 				}
 			}
