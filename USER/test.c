@@ -124,7 +124,7 @@ int main(void)
 
 			
 			myfree(strJson);
-			delay_ms(500);
+			delay_ms(50);
 		}
 		
 	}	 
