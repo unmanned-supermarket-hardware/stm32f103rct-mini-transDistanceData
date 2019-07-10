@@ -17,47 +17,9 @@ extern u8 UART5_RX_BUF[64]; //接收到的数据
 extern double d2;
 extern double d3;
 extern double d5;
-int main(void)
-{			
-	char strTemp[64];
-	char *p2 = strTemp;
-	char *p3 = strTemp +DATA_LEN;
-	char *p5 = strTemp +DATA_LEN*2;
-	
-	cJSON *root;
-	char *strJson;
-	u8 head[3]; //head 格式为 ## 数据个数
-	char strSend[256];
-	
-	head[0] = head[1] ='#';
-	Stm32_Clock_Init(9); //系统时钟设置
-	delay_init(72);	     //延时初始化 
-	uart_init(72,115200);	 
-	uart2_init(36,115200);
-	uart3_init(36,115200);
-	uart5_init(36,115200);
 
-	delay_ms(100);
-	usart2_sendString("iFACM:0",7);
-	delay_ms(100);
-	usart3_sendString("iFACM:0",7);
-	delay_ms(100);
-	uart5_sendString("iFACM:0",7);
-
-	while(1)
-	{
-
-//		delay_ms(100);
-//		strncpy(p2,(char *)USART2_RX_BUF,DATA_LEN);
-//		strncpy(p3,(char *)USART3_RX_BUF,DATA_LEN);
-//		strncpy(p5,(char *)UART5_RX_BUF,DATA_LEN);
-//		strcpy(p5+DATA_LEN,"\r\n\r\n");
-
-		//usart1_sendString(strTemp,DATA_LEN*3+4);
-		
-		//------------------test json
-		if(startOpen)
-		{
+void open()
+{
 			printf("turning on usart2...");
 			delay_ms(500);
 			usart2_sendString("iFACM:0",7);
@@ -72,7 +34,7 @@ int main(void)
 			usart3_sendString("iFACM:0",7);
 			delay_ms(500);
 			
-			printf("turning on usart5...");
+			printf("turning on uart5...");
 			delay_ms(500);
 			uart5_sendString("iFACM:0",7);
 			delay_ms(500);
@@ -83,6 +45,40 @@ int main(void)
 			delay_ms(500);
 			startOpen = 0;
 			isOpen = 1;
+}
+
+
+int main(void)
+{			
+
+	u16 jsonSize;
+	cJSON *root;
+	char *strJson;
+	char strSend[256];
+	
+	strSend[0] = '#';
+	strSend[1] = '!';
+	strSend[2] = 0;
+	
+	Stm32_Clock_Init(9); //系统时钟设置
+	delay_init(72);	     //延时初始化 
+	uart_init(72,115200);	 
+	uart2_init(36,115200);
+	uart3_init(36,115200);
+	uart5_init(36,115200);
+
+	delay_ms(1000);
+	
+	
+	open();
+
+	while(1)
+	{
+
+
+		if(startOpen)
+		{
+			open();
 		}
 		
 		if(startClose)
@@ -97,34 +93,39 @@ int main(void)
 			isOpen = 0;
 		}
 					
-		
 		//--------------------
 		if(isOpen)
 		{
 			root=cJSON_CreateObject();
 
-
-			cJSON_AddNumberToObject(root,"d2", d2);
-			cJSON_AddNumberToObject(root,"d3", d3);
-			cJSON_AddNumberToObject(root,"d5", d5);
+			cJSON_AddNumberToObject(root,"from",1);
+			cJSON_AddNumberToObject(root,"to",2);
+			cJSON_AddNumberToObject(root,"msType",1);
+			
+			cJSON_AddNumberToObject(root,"F", d2);
+			cJSON_AddNumberToObject(root,"L1", d3);
+			cJSON_AddNumberToObject(root,"L2", d5);
 			
 			cJSON_AddStringToObject(root,"d2str",(char *)USART2_RX_BUF);
 			cJSON_AddStringToObject(root,"d3str",(char *)USART3_RX_BUF);
 			cJSON_AddStringToObject(root,"d5str",(char *)UART5_RX_BUF);
-
+			
+		
 			strJson=cJSON_Print(root); 
 			cJSON_Delete(root); 
 			
-			head[2] = strlen(strJson);
-			strncpy(strSend,(char *)head,3);
-			strncpy(strSend+3,strJson,strlen(strJson));
-			printf("%s\n",strSend); 
+			jsonSize = strlen(strJson);
+
+			strSend[3] = jsonSize;
+
+			strncpy(strSend+4,strJson,strlen(strJson));
+			//printf("%s\r\nlen = %d ,%x",strSend,jsonSize,jsonSize); 
+			usart1_sendString(strSend,4 + jsonSize);
+
 			
 			myfree(strJson);
 			delay_ms(500);
 		}
-		
-		
 		
 	}	 
 }
