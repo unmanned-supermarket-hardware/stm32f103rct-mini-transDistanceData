@@ -8,6 +8,9 @@
 //技术支持：www.openedv.com
 //广州市星翼电子科技有限公司
 # define DATA_LEN 13
+
+extern u8 startOpen,startClose,isOpen;
+extern u8 USART2_RX_FLAG;
 extern u8 USART2_RX_BUF[64]; //接收到的数据
 extern u8 USART3_RX_BUF[64]; //接收到的数据
 extern u8 UART5_RX_BUF[64]; //接收到的数据
@@ -53,30 +56,76 @@ int main(void)
 		//usart1_sendString(strTemp,DATA_LEN*3+4);
 		
 		//------------------test json
-
-
-		root=cJSON_CreateObject();
-
-
-		cJSON_AddNumberToObject(root,"d2", d2);
-		cJSON_AddNumberToObject(root,"d3", d3);
-		cJSON_AddNumberToObject(root,"d5", d5);
+		if(startOpen)
+		{
+			printf("turning on usart2...");
+			delay_ms(500);
+			usart2_sendString("iFACM:0",7);
+			delay_ms(500);
+			usart2_sendString("iFACM:0",7);
+			delay_ms(500);
+			
+			printf("turning on usart3...");
+			delay_ms(500);
+			usart3_sendString("iFACM:0",7);
+			delay_ms(500);
+			usart3_sendString("iFACM:0",7);
+			delay_ms(500);
+			
+			printf("turning on usart5...");
+			delay_ms(500);
+			uart5_sendString("iFACM:0",7);
+			delay_ms(500);
+			uart5_sendString("iFACM:0",7);
+			delay_ms(500);
+			
+			printf("finished...USART2_RX_FLAG = %d ",USART2_RX_FLAG);
+			delay_ms(500);
+			startOpen = 0;
+			isOpen = 1;
+		}
 		
-		cJSON_AddStringToObject(root,"d2str",(char *)USART2_RX_BUF);
-		cJSON_AddStringToObject(root,"d3str",(char *)USART3_RX_BUF);
-		cJSON_AddStringToObject(root,"d5str",(char *)UART5_RX_BUF);
+		if(startClose)
+		{
+			usart2_sendString("iHALT",5);
+			delay_ms(100);
+			usart3_sendString("iHALT",5);
+			delay_ms(100);
+			uart5_sendString("iHALT",5);
+			delay_ms(100);
+			startClose = 0;
+			isOpen = 0;
+		}
+					
+		
+		//--------------------
+		if(isOpen)
+		{
+			root=cJSON_CreateObject();
 
-		strJson=cJSON_Print(root); 
-		cJSON_Delete(root); 
+
+			cJSON_AddNumberToObject(root,"d2", d2);
+			cJSON_AddNumberToObject(root,"d3", d3);
+			cJSON_AddNumberToObject(root,"d5", d5);
+			
+			cJSON_AddStringToObject(root,"d2str",(char *)USART2_RX_BUF);
+			cJSON_AddStringToObject(root,"d3str",(char *)USART3_RX_BUF);
+			cJSON_AddStringToObject(root,"d5str",(char *)UART5_RX_BUF);
+
+			strJson=cJSON_Print(root); 
+			cJSON_Delete(root); 
+			
+			head[2] = strlen(strJson);
+			strncpy(strSend,(char *)head,3);
+			strncpy(strSend+3,strJson,strlen(strJson));
+			printf("%s\n",strSend); 
+			
+			myfree(strJson);
+			delay_ms(500);
+		}
 		
-		head[2] = strlen(strJson);
-		strncpy(strSend,(char *)head,3);
-		strncpy(strSend+3,strJson,strlen(strJson));
-		printf("%s\n",strSend); 
 		
-		myfree(strJson);
 		
-		delay_ms(500);
 	}	 
 }
 

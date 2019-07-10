@@ -85,6 +85,9 @@ void usart1_sendString(char *data,u8 len)
 	}
 	
 }
+u8 startOpen = 0;
+u8 startClose = 0;
+u8 isOpen = 0;
 
 /**************************实现函数**********************************************
 *功    能:		usart1接收中断
@@ -107,31 +110,26 @@ void USART1_IRQHandler(void)
 		//开始快速自动持续测量
 		if(res == '2')
 		{
-//			usart2_sendString("iFACM:0",7);
-			usart2_sendString("iSET:6,1",8);
+			usart2_sendString("iFACM:0",7);
+//			usart2_sendString("iSET:6,1",8);
 		}
 		else if(res == '3')  
 		{
-			//usart3_sendString("iFACM:0",7);
-			usart2_sendString("iSET:6,1",8);
+			usart3_sendString("iFACM:0",7);
+			//usart2_sendString("iSET:6,1",8);
 		}
 		else if(res == '5')
 		{
-			//uart5_sendString("iFACM:0",7);
-			usart2_sendString("iSET:6,1",8);
+			uart5_sendString("iFACM:0",7);
+			//usart2_sendString("iSET:6,1",8);
 		}
 		else if(res == 'a')
 		{
-			usart2_sendString("iFACM:0",7);
-			usart3_sendString("iFACM:0",7);
-			uart5_sendString("iFACM:0",7);
+			startOpen = 1;
 		}
 		else if (res == 'z')
 		{
-			usart2_sendString("iHALT",5);
-			usart3_sendString("iHALT",5);
-			uart5_sendString("iHALT",5);
-			usart2_sendString("iHALT",5);
+			startClose = 1;
 		}
 		//--------------------------------------
 		USART1->CR1 |=1<<3;  //重新开启发送

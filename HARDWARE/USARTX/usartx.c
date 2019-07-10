@@ -36,6 +36,7 @@ u16 USART2_RX_STA=0;
 u8 USART2_COUNT = 0;
 double d2 =0;
 char d2Str[5];
+u8 USART2_RX_FLAG = 0;
 //接收状态
 //bit15，	接收完成标志
 //bit14，	接收到0x0d
@@ -48,6 +49,7 @@ int USART2_IRQHandler(void)
 	if(USART2->SR&(1<<5))//接收到数据
 	{	      
 			res =USART2->DR;
+		USART2_RX_FLAG = 1;
 		//usart2_send(res);
 			if((USART2_RX_STA&0x8000)==0)//接收未完成
 			{
@@ -64,7 +66,7 @@ int USART2_IRQHandler(void)
 						strncpy(d2Str,(char *)(USART2_RX_BUF+2),6);
 						sprintf(strTemp,"%s\r\n",d2Str);
 						
-						usart1_sendString(strTemp,strlen(strTemp));
+						//usart1_sendString(strTemp,strlen(strTemp));
 						if(USART2_RX_BUF[0] =='D')
 							d2 = atof(d2Str);
 						else
