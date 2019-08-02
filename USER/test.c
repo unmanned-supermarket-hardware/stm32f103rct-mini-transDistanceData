@@ -13,34 +13,21 @@ extern u8 startOpen,startClose,isOpen;
 extern u8 USART2_RX_FLAG;
 extern u8 USART2_RX_BUF[64]; //接收到的数据
 extern u8 USART3_RX_BUF[64]; //接收到的数据
+extern u8 UART4_RX_BUF[64]; //接收到的数据
 extern u8 UART5_RX_BUF[64]; //接收到的数据
 extern double d2;
 extern double d3;
+extern double d4;
 extern double d5;
 
 void open()
 {
-			printf("turning on usart2...");
-			delay_ms(500);
+	
 			usart2_sendString("iFACM:0",7);
-			delay_ms(500);
-			usart2_sendString("iFACM:0",7);
-			delay_ms(500);
-			
-			printf("turning on usart3...");
-			delay_ms(500);
 			usart3_sendString("iFACM:0",7);
-			delay_ms(500);
-			usart3_sendString("iFACM:0",7);
-			delay_ms(500);
-			
-			printf("turning on uart5...");
-			delay_ms(500);
+			uart4_sendString("iFACM:0",7);
 			uart5_sendString("iFACM:0",7);
-			delay_ms(500);
-			uart5_sendString("iFACM:0",7);
-			delay_ms(500);
-			
+
 			printf("finished...USART2_RX_FLAG = %d ",USART2_RX_FLAG);
 			delay_ms(500);
 			startOpen = 0;
@@ -65,6 +52,7 @@ int main(void)
 	uart_init(72,115200);	 
 	uart2_init(36,115200);
 	uart3_init(36,115200);
+	uart4_init(36,115200);
 	uart5_init(36,115200);
 
 	delay_ms(1000);
@@ -87,6 +75,7 @@ int main(void)
 			delay_ms(100);
 			usart3_sendString("iHALT",5);
 			delay_ms(100);
+			uart4_sendString("iHALT",5);
 			uart5_sendString("iHALT",5);
 			delay_ms(100);
 			startClose = 0;
@@ -103,11 +92,13 @@ int main(void)
 			cJSON_AddNumberToObject(root,"msType",1);
 			
 			cJSON_AddNumberToObject(root,"F", d2);
+			cJSON_AddNumberToObject(root,"B", d4);
 			cJSON_AddNumberToObject(root,"L1", d3);
 			cJSON_AddNumberToObject(root,"L2", d5);
 			
 			cJSON_AddStringToObject(root,"d2str",(char *)USART2_RX_BUF);
 			cJSON_AddStringToObject(root,"d3str",(char *)USART3_RX_BUF);
+			cJSON_AddStringToObject(root,"d4str",(char *)UART4_RX_BUF);
 			cJSON_AddStringToObject(root,"d5str",(char *)UART5_RX_BUF);
 			
 		
